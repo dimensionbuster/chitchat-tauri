@@ -1,7 +1,7 @@
 /**
  * 자동 업데이트 (tauri-plugin-updater).
  * 업데이트 정보(latest.json)는 GitHub Releases에서 받고, 설치 파일은 서명 검증 후 설치한다.
- * 설정(공개키/엔드포인트)은 src-tauri/tauri.conf.json의 plugins.updater에 있다. 릴리스 절차는 docs/RELEASE.md.
+ * 설정(공개키/엔드포인트)은 src-tauri/tauri.conf.json의 plugins.updater에 있다. 릴리스 절차는 mywiki의 updater-and-release 페이지.
  */
 
 import { check, type Update } from '@tauri-apps/plugin-updater'

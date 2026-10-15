@@ -44,11 +44,7 @@ export interface ElectronApi {
     currentVersion: string
     latestVersion: string | null
     releaseUrl: string | null
-    /** true면 앱 안에서 바로 설치할 수 있다 */
-    canInstall?: boolean
   }>
-  /** 확인된 업데이트를 설치하고 앱을 다시 시작한다 */
-  installUpdate: () => Promise<void>
   getAppVersion: () => Promise<string>
   // 시스템/설정 이벤트
   onSystemResume: (callback: () => void) => void

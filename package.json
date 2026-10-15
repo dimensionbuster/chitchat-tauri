@@ -1,12 +1,15 @@
 {
   "name": "chitchat-web",
-  "version": "0.0.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
+    "preversion": "node tools/release/check-branch.mjs",
+    "version": "node tools/release/sync-version.mjs",
+    "postversion": "git push origin dev --follow-tags",
     "dev": "vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
@@ -18,8 +21,6 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
-    "@tauri-apps/plugin-process": "^2.4.0",
-    "@tauri-apps/plugin-updater": "^2.14.0",
     "idb": "^8.0.3",
     "trystero": "^0.26.0",
     "vue": "^3.5.22",

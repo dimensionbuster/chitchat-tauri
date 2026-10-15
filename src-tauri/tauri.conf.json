@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "ChitChat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.dimensionbuster.chitchat",
   "build": {
     "frontendDist": "../dist",
@@ -36,19 +36,7 @@
     "android": {
       "debugApplicationIdSuffix": ".debug"
     },
-    "createUpdaterArtifacts": true,
     "category": "SocialNetworking",
     "shortDescription": "ChitChat 분산형 P2P 채팅"
-  },
-  "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVCRDU3MjQ5MkM3QUQ2RkMKUldUODFub3NTWExWVzhFaUlMMVVGZ2NyNWMyVlE3ZDhwdWlvQ0tBV2dXdm5HR3ZVUDRwQ3plNjIK",
-      "endpoints": [
-        "https://github.com/dimensionbuster/chitchat-tauri/releases/latest/download/latest.json"
-      ],
-      "windows": {
-        "installMode": "passive"
-      }
-    }
   }
 }

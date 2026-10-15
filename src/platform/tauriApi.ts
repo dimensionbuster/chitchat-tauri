@@ -10,7 +10,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import type { ElectronApi } from '@/types/window'
 import { installTitlebar } from './titlebar'
-import { checkForUpdate, installUpdate, startAutoUpdate } from './updater'
+import { checkForUpdate, startAutoUpdate } from './updater'
 
 type BackgroundType = 'home' | 'chat' | 'notification'
 type NotificationSettings = { volume: number; enabled: boolean }
@@ -229,7 +229,6 @@ export function createTauriApi(): ElectronApi {
 
     // 업데이트
     checkForUpdates: checkForUpdate,
-    installUpdate,
     getAppVersion: () => getVersion(),
   }
 }
@@ -247,9 +246,9 @@ export function installTauriApi(): boolean {
   installDragRegions()
   installTitlebar()
 
-  // 자동 업데이트는 메인 창에서만 (창마다 중복으로 묻지 않도록)
+  // 업데이트 알림은 메인 창에서만 (창마다 중복으로 묻지 않도록)
   const label = (window as unknown as { __TAURI_INTERNALS__?: { metadata?: { currentWindow?: { label?: string } } } }).__TAURI_INTERNALS__?.metadata?.currentWindow?.label
-  if (label === 'main' && !import.meta.env.DEV) startAutoUpdate(message => api.showConfirm(message))
+  if (label === 'main' && !import.meta.env.DEV) startAutoUpdate(message => api.showConfirm(message), url => api.openExternal(url))
 
   // F12: 개발자 도구 토글
   window.addEventListener('keydown', e => {

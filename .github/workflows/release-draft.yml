@@ -90,3 +90,4 @@ jobs:
           releaseName: ChitChat ${{ needs.verify.outputs.tag }}
           releaseBody: 변경 사항은 PR 설명 참고.
           releaseDraft: true
+          includeUpdaterJson: false

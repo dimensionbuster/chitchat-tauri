@@ -11,6 +11,7 @@
     "version": "node tools/release/sync-version.mjs",
     "postversion": "git push origin dev --follow-tags",
     "dev": "vite --host",
+    "tauri": "tauri",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",

@@ -30,8 +30,6 @@ const updateCheckMessage = ref('')
 const isCheckingUpdate = ref(false)
 const updateAvailable = ref(false)
 const releaseUrl = ref<string | null>(null)
-const canInstallUpdate = ref(false)
-const isInstallingUpdate = ref(false)
 
 if (!localStorage.getItem('uuid')) {
   localStorage.setItem('uuid', crypto.randomUUID())
@@ -188,14 +186,12 @@ const checkForUpdates = async () => {
   updateCheckMessage.value = ''
   updateAvailable.value = false
   releaseUrl.value = null
-  canInstallUpdate.value = false
 
   try {
     const result = await window.electronApi.checkForUpdates()
     updateCheckMessage.value = result.message
     updateAvailable.value = result.available
     releaseUrl.value = result.releaseUrl || null
-    canInstallUpdate.value = !!result.canInstall
 
     if (!result.available) {
       setTimeout(() => {
@@ -207,19 +203,6 @@ const checkForUpdates = async () => {
     updateCheckMessage.value = '업데이트 확인 실패'
   } finally {
     isCheckingUpdate.value = false
-  }
-}
-
-const installUpdate = async () => {
-  if (!window.electronApi || isInstallingUpdate.value) return
-  isInstallingUpdate.value = true
-  updateCheckMessage.value = '업데이트를 내려받는 중입니다. 설치가 끝나면 앱이 다시 시작됩니다...'
-  try {
-    await window.electronApi.installUpdate()
-  } catch (error) {
-    console.error('Failed to install update:', error)
-    updateCheckMessage.value = '업데이트 설치에 실패했습니다.'
-    isInstallingUpdate.value = false
   }
 }
 
@@ -339,13 +322,6 @@ onMounted(async () => {
 
           <div v-if="updateCheckMessage" class="update-message" :class="{ 'has-update': updateAvailable }">
             {{ updateCheckMessage }}
-            <button
-              v-if="updateAvailable && canInstallUpdate && !isInstallingUpdate"
-              @click="installUpdate"
-              class="download-button"
-            >
-              지금 설치
-            </button>
             <button
               v-if="updateAvailable && releaseUrl"
               @click="openReleaseUrl"

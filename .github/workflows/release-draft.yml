@@ -1,0 +1,92 @@
+name: release-draft
+
+# dev -> main PR에서 실행. 버전 태그가 PR 헤드에 있고 최신이면 빌드해서 드래프트 릴리스에 올린다.
+# 드래프트를 직접 Publish 하면 앱의 업데이트 알림이 시작된다 (설치는 사용자가 수동).
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-draft-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # 같은 저장소의 dev 브랜치에서 온 PR만 (포크 PR은 시크릿 접근 불가 + 신뢰 안 함)
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      tag: ${{ steps.check.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: 태그 검증
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          version=$(jq -r .version src-tauri/tauri.conf.json)
+          tag="v${version}"
+
+          # 세 파일 버전 일치
+          pkg=$(jq -r .version package.json)
+          cargo=$(grep -m1 '^version' src-tauri/Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')
+          [ "$pkg" = "$version" ] && [ "$cargo" = "$version" ] \
+            || { echo "::error::버전 불일치 conf=$version package=$pkg cargo=$cargo"; exit 1; }
+
+          # 태그 존재 + PR 헤드에 포함
+          git rev-parse -q --verify "refs/tags/${tag}" >/dev/null \
+            || { echo "::error::태그 ${tag} 없음. npm run release:bump 후 --follow-tags 로 푸시하라"; exit 1; }
+          git merge-base --is-ancestor "$(git rev-list -n1 "$tag")" "$HEAD_SHA" \
+            || { echo "::error::태그 ${tag} 가 PR 헤드 이력에 없음"; exit 1; }
+
+          # 최신 여부: 게시된 최신 릴리스보다 높아야 함
+          latest=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 --json tagName -q '.[0].tagName // ""')
+          if [ -n "$latest" ]; then
+            top=$(printf '%s\n%s\n' "${latest#v}" "$version" | sort -V | tail -1)
+            { [ "$top" = "$version" ] && [ "${latest#v}" != "$version" ]; } \
+              || { echo "::error::${tag} 는 최신 릴리스 ${latest} 보다 높지 않음"; exit 1; }
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ needs.verify.outputs.tag }}
+          releaseName: ChitChat ${{ needs.verify.outputs.tag }}
+          releaseBody: 변경 사항은 PR 설명 참고.
+          releaseDraft: true

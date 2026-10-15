@@ -1,12 +1,15 @@
 {
   "name": "chitchat-web",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
+    "preversion": "node tools/release/check-branch.mjs",
+    "version": "node tools/release/sync-version.mjs",
+    "postversion": "git push origin dev --follow-tags",
     "dev": "vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
@@ -14,8 +17,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "deploy": "gh-pages -d dist",
-    "release:bump": "node tools/release/bump-version.mjs"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

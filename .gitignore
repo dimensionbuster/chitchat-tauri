@@ -33,3 +33,7 @@ coverage
 .gstack/
 
 test-data/
+
+# Claude Code
+CLAUDE.md
+.claude/
